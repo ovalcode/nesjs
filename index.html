@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>NES Emulator From Scratch</title>
+    <script src="Memory.js"></script>
+    <script src="Cpu.js"></script>
+  </head>
+  <body>
+    <h1>NES Emulator From Scratch</h1>
+
+<input type="file" id="file" name="myfile"/>
+<button onclick="myTape.attachTape(document.getElementById('file').files[0])">Attach</button>
+<br/>
+<button onclick="mymem.togglePlayPresed()">Play</button>
+<br/>
+<input type="checkbox" id="allowDebug"/> Allow logging<br/>
+<textarea id="registers" name="reg" rows="1" cols="60"></textarea>
+<br/>
+<textarea id="memory" name="mem" rows="15" cols="60"></textarea>
+From Location:
+<input type="text" id="frommem">
+<button onclick="showMem()">Refresh Dump</button>
+<br/>
+<textarea id="diss" name="diss" rows="11" cols="60"></textarea>
+<button id="btnStep" disabled = "true" onclick="step()">Step</button>
+<button id="btnRun" disabled = "true" onclick="startEm()">Run</button>
+<button id="btnStop" disabled = "true" onclick="stopEm()">Stop</button>
+<br/>
+Break at: <input type="text" id="breakpoint">
+    <script language="JavaScript">
+
+      var mymem = new memory(postInit,mykeyboard, myTimerA, myTimerB, myInterruptController, myTape);
+      var mycpu = new cpu(mymem);
+
+      var running = false;
+      var breakpoint = 0;
+
+     function postInit() {
+        document.getElementById("btnStep").disabled = false;
+        document.getElementById("btnRun").disabled = false;
+        document.getElementById("btnStop").disabled = false;
+        mycpu.reset();
+     }
+
+      function showMem() {
+        var m = document.getElementById("memory");
+        var location = document.getElementById("frommem");
+        locationInt = parseInt(location.value, 16);
+        tempmemstr = ""
+        for (i = locationInt; i < (160 + locationInt); i++) {
+          if ((i % 16) == 0) {
+            labelstr = "";
+            labelstr = labelstr + "0000" + i.toString(16);
+            labelstr = labelstr.slice(-4);
+
+            tempmemstr = tempmemstr + "\n" + labelstr;
+          }
+          currentByte = "00" + mymem.readMem(i).toString(16);        
+          currentByte = currentByte.slice(-2);
+          tempmemstr = tempmemstr + " " + currentByte;
+        }
+        m.value = tempmemstr;
+
+      }
+      function runBatch() {
+        if (!running)
+          return;
+        mycpu.setAllowLogging(document.getElementById("allowDebug").checked);
+        while (true) { 
+          mycpu.step();
+          if (mycpu.getPc() == breakpoint) {
+            stopEm();
+            return;
+          }
+        }
+      }
+      
+      function startEm() {
+        document.getElementById("btnStep").disabled = true;
+        document.getElementById("btnRun").blur();
+        document.getElementById("btnRun").disabled = true;
+        document.getElementById("btnStop").disabled = false;
+        var myBreak = document.getElementById("breakpoint");
+        breakpoint = parseInt(myBreak.value, 16);
+        running = true;
+        myTimer = setInterval(runBatch, 20);
+      }
+
+      function stopEm() {
+        running = false;
+        clearInterval(mytimer);
+        displayEmuState();
+
+        document.getElementById("btnStep").disabled = false;
+        document.getElementById("btnRun").disabled = false;
+        document.getElementById("btnStop").disabled = true;
+
+      }
+ 
+      function displayEmuState() {
+        var t = document.getElementById("registers");
+        t.value = mycpu.getDebugReg();
+        
+        var ins = document.getElementById("diss");
+        ins.value = mycpu.getDecodedStr();
+        showMem();
+        t.value = mycpu.getDebugReg();
+
+      }
+
+      function step() {
+        mycpu.step();
+        displayEmuState();
+
+      }
+
+
+    </script>
+  </body>
+</html>
