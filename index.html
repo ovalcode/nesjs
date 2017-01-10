@@ -9,9 +9,7 @@
     <h1>NES Emulator From Scratch</h1>
 
 <input type="file" id="file" name="myfile"/>
-<button onclick="myTape.attachTape(document.getElementById('file').files[0])">Attach</button>
-<br/>
-<button onclick="mymem.togglePlayPresed()">Play</button>
+<button onclick="mymem.attachCartridge(document.getElementById('file').files[0])">Attach</button>
 <br/>
 <input type="checkbox" id="allowDebug"/> Allow logging<br/>
 <textarea id="registers" name="reg" rows="1" cols="60"></textarea>
@@ -29,7 +27,7 @@ From Location:
 Break at: <input type="text" id="breakpoint">
     <script language="JavaScript">
 
-      var mymem = new memory(postInit,mykeyboard, myTimerA, myTimerB, myInterruptController, myTape);
+      var mymem = new memory();
       var mycpu = new cpu(mymem);
 
       var running = false;
@@ -43,6 +41,8 @@ Break at: <input type="text" id="breakpoint">
      }
 
       function showMem() {
+        
+        
         var m = document.getElementById("memory");
         var location = document.getElementById("frommem");
         locationInt = parseInt(location.value, 16);
