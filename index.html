@@ -9,7 +9,7 @@
     <h1>NES Emulator From Scratch</h1>
 
 <input type="file" id="file" name="myfile"/>
-<button onclick="mymem.attachCartridge(document.getElementById('file').files[0])">Attach</button>
+<button onclick="attachCartridge()">Attach</button>
 <br/>
 <input type="checkbox" id="allowDebug"/> Allow logging<br/>
 <textarea id="registers" name="reg" rows="1" cols="60"></textarea>
@@ -29,6 +29,7 @@ Break at: <input type="text" id="breakpoint">
 
       var mymem = new memory();
       var mycpu = new cpu(mymem);
+      postInit();
 
       var running = false;
       var breakpoint = 0;
@@ -37,7 +38,7 @@ Break at: <input type="text" id="breakpoint">
         document.getElementById("btnStep").disabled = false;
         document.getElementById("btnRun").disabled = false;
         document.getElementById("btnStop").disabled = false;
-        mycpu.reset();
+        //mycpu.reset();
      }
 
       function showMem() {
@@ -84,6 +85,11 @@ Break at: <input type="text" id="breakpoint">
         breakpoint = parseInt(myBreak.value, 16);
         running = true;
         myTimer = setInterval(runBatch, 20);
+      }
+
+      function attachCartridge() {
+        mymem.attachCartridge(document.getElementById('file').files[0], mycpu);
+        //mycpu.reset();
       }
 
       function stopEm() {

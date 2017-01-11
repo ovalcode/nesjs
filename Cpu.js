@@ -101,10 +101,6 @@ const opCodeDesc =
   var myvideo;
   var allowLogging = false;
 
-  this.setInterruptController = function (interruptController) {
-    myInterruptController = interruptController;
-  }
-
     this.getCycleCount = function() {
       return cycleCount;
     }
@@ -113,9 +109,6 @@ const opCodeDesc =
       interruptOcurred = 1;
     }
 
-  this.setVideo = function (video) {
-    myvideo = video;
-  }
 
     this.getPc = function () {
       return pc;
@@ -409,18 +402,6 @@ const opCodeDesc =
 
   this.step = function () {
     log_debug(this.getDecodedStr() + "  " + this.getDebugReg());
-    if ((myInterruptController.getCpuInterruptOcurred() | myvideo.vicIntOccured()) & (interruptflag == 0)) {
-        interruptOcurred = 0;
-        Push(pc >> 8);
-        Push(pc & 0xff);
-        breakflag = 0;
-        Push(getStatusFlagsAsByte());
-        breakflag = 1;
-        interruptflag = 1;
-        tempVal = localMem.readMem(0xffff) * 256;
-        tempVal = tempVal + localMem.readMem(0xfffe);
-        pc = tempVal;
-    }
 
     var opcode = localMem.readMem(pc);
     pc = pc + 1;

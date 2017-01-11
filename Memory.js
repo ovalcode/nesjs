@@ -3,7 +3,7 @@ function memory()
 {
   var mainMem = new Uint8Array(65536);
 
-  this.attachCartridge = function(file) {
+  this.attachCartridge = function(file, cpu) {
        var reader = new FileReader();
        reader.onload = function(e) {
          var arrayBuffer = reader.result;
@@ -14,6 +14,7 @@ function memory()
            mainMem[i] = cartridgeData[posInData];
            posInData++;
          }
+         cpu.reset();
          alert("Cartridge attached");
        }
        reader.readAsArrayBuffer(file);
@@ -25,6 +26,8 @@ function memory()
   }
 
   this.writeMem = function (address, byteval) {
+    if (address >= 0x8000)
+      return;
     mainMem[address] = byteval;
   }
 
