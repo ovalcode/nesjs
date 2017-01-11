@@ -29,6 +29,7 @@ Break at: <input type="text" id="breakpoint">
 
       var mymem = new memory();
       var mycpu = new cpu(mymem);
+      var myTimer;
       postInit();
 
       var running = false;
@@ -101,7 +102,7 @@ Break at: <input type="text" id="breakpoint">
 
       function stopEm() {
         running = false;
-        clearInterval(mytimer);
+        clearInterval(myTimer);
         displayEmuState();
 
         document.getElementById("btnStep").disabled = false;
