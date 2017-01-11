@@ -22,10 +22,14 @@ function memory()
   }
 
   this.readMem = function (address) {
+    if ((address > 0x2000)  & (address < 0x8000))
+      console.log("Read " + address.toString(16));
     return mainMem[address];
   }
 
   this.writeMem = function (address, byteval) {
+    if ((address > 0x2000) & (address != 0x2002))
+      console.log("Write " + address.toString(16) + " " + byteval.toString(16));
     if (address >= 0x8000)
       return;
     mainMem[address] = byteval;

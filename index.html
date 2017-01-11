@@ -67,9 +67,11 @@ Break at: <input type="text" id="breakpoint">
         if (!running)
           return;
         mycpu.setAllowLogging(document.getElementById("allowDebug").checked);
-        while (true) { 
+        var cycleInFrame = 0;
+        while (cycleInFrame < 19500) { 
           mycpu.step();
-          if ((mycpu.getCycleCount() % 20000) < 100) {
+          cycleInFrame = mycpu.getCycleCount() % 20000;
+          if (cycleInFrame < 100) {
             mymem.writeMem(0x2002, 0x80);
           } else {
             mymem.writeMem(0x2002, 0x0);
