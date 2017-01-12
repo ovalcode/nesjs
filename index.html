@@ -74,8 +74,12 @@ Break at: <input type="text" id="breakpoint">
           cycleInFrame = mycpu.getCycleCount() % 20000;
           if (cycleInFrame < 100) {
             mymem.writeMem(0x2002, 0x80);
+            if (mymem.readMem(0x2000) & 0x80)
+              mycpu.setNMIpinStatus(1);
           } else {
             mymem.writeMem(0x2002, 0x0);
+            if (mymem.readMem(0x2000) & 0x80)
+              mycpu.setNMIpinStatus(0);
           }
           if (mycpu.getPc() == breakpoint) {
             stopEm();

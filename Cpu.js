@@ -97,6 +97,8 @@ const opCodeDesc =
   var breakflag = 1;
   var cycleCount = 0;
   var interruptOcurred = 0;
+  var nmiOcurred = 0;
+  var previousNMIpinStatus = 1;
   var myInterruptController;
   var myvideo;
   var allowLogging = false;
@@ -107,6 +109,12 @@ const opCodeDesc =
 
     this.setInterrupt = function () {
       interruptOcurred = 1;
+    }
+
+    this.setNMIpinStatus = function(status) {
+      if ((previousNMIpinStatus == 1) & (status == 0))
+        nmiOcurred = 1;
+      previousNMIpinStatus = status;
     }
 
 
@@ -403,6 +411,18 @@ const opCodeDesc =
   this.step = function () {
     log_debug(this.getDecodedStr() + "  " + this.getDebugReg());
 
+    if (nmiOcurred) {
+        nmiOcurred = 0;
+        Push(pc >> 8);
+        Push(pc & 0xff);
+        breakflag = 0;
+        Push(getStatusFlagsAsByte());
+        breakflag = 1;
+        interruptflag = 1;
+        tempVal = localMem.readMem(0xfffb) * 256;
+        tempVal = tempVal + localMem.readMem(0xfffa);
+        pc = tempVal;
+    }
     var opcode = localMem.readMem(pc);
     pc = pc + 1;
     var iLen = instructionLengths[opcode];
