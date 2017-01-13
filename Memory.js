@@ -16,6 +16,7 @@ function memory(ppu)
            posInData++;
          }
          cpu.reset();
+         localPPU.initFromCartridgeData(cartridgeData);
          alert("Cartridge attached");
        }
        reader.readAsArrayBuffer(file);
