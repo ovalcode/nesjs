@@ -6,6 +6,43 @@ function ppu(screenCanvas) {
   var ppuMemory = new Uint8Array(65536);
   var writeCounter = 0;
 
+  this.draw2 = function() {
+    var line = 0;
+    var posinbuf = 0;
+    var currentTextLinePos = 0x2000;
+//    var  = 0;
+    for (line = 0; line < 240; line++) {
+      if ((line > 0) && !(line & 7)) {
+        currentTextLinePos = currentTextLinePos + 32;
+      }
+      var currentCharPos;
+      for (currentCharPos = currentTextLinePos; currentCharPos < (currentTextLinePos + 32); currentCharPos++) {
+        var tileNumber = ppuMemory[currentCharPos];
+        var pixelNum;
+        var pixelData = ppuMemory[0x1000 + (tileNumber << 4) + (line & 7) ];
+        for (pixelNum = 0; pixelNum < 8; pixelNum++) {
+          if (pixelData & 128) {
+            screenDataAsArray[posinbuf+0] = 0;
+            screenDataAsArray[posinbuf+1] = 0;
+            screenDataAsArray[posinbuf+2] = 0;
+            screenDataAsArray[posinbuf+3] = 255;
+            posinbuf = posinbuf + 4;
+          } else {
+            screenDataAsArray[posinbuf+0] = 255;
+            screenDataAsArray[posinbuf+1] = 255;
+            screenDataAsArray[posinbuf+2] = 255;
+            screenDataAsArray[posinbuf+3] = 255;
+            posinbuf = posinbuf + 4;
+
+          }
+          pixelData = pixelData << 1;          
+        }
+      }
+    }
+
+    contextScreen.putImageData(screenData,0,0);
+  }
+
   this.draw = function () {
     var i;
     var j;
