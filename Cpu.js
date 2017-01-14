@@ -409,7 +409,7 @@ const opCodeDesc =
 
 
   this.step = function () {
-    log_debug(this.getDecodedStr() + "  " + this.getDebugReg());
+    //log_debug(this.getDecodedStr() + "  " + this.getDebugReg());
 
     if (nmiOcurred) {
         nmiOcurred = 0;
@@ -419,7 +419,7 @@ const opCodeDesc =
         Push(getStatusFlagsAsByte());
         breakflag = 1;
         interruptflag = 1;
-        tempVal = localMem.readMem(0xfffb) * 256;
+        tempVal = localMem.readMem(0xfffb) << 8;
         tempVal = tempVal + localMem.readMem(0xfffa);
         pc = tempVal;
     }

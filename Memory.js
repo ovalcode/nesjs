@@ -4,6 +4,23 @@ function memory(ppu)
   var mainMem = new Uint8Array(65536);
   var localPPU = ppu;
 
+  var controllerButtons = 0;
+  var controllerShiftRegister = 0;
+
+  this.onkeydown = function(event) {
+    if (event.keyCode == 65)
+      controllerButtons = controllerButtons | 0x20;
+    else if (event.keyCode == 66)
+      controllerButtons = controllerButtons | 0x10;
+  }
+
+  this.onkeyup = function(event) {
+    if (event.keyCode == 65)
+      controllerButtons = controllerButtons & 0xdf;
+    else if (event.keyCode == 66)
+      controllerButtons = controllerButtons & 0xef;
+  }
+
   this.attachCartridge = function(file, cpu) {
        var reader = new FileReader();
        reader.onload = function(e) {
@@ -26,8 +43,21 @@ function memory(ppu)
   this.readMem = function (address) {
     //if ((address > 0x2000)  & (address < 0x8000))
     //  console.log("Read " + address.toString(16));
+    var temp = 0;
     if ((address >= 0x2000)  & (address < 0x2008))
       return localPPU.readRegister(address)
+    else if ((address == 0x4016)) {
+      if (!(mainMem[0x4016] & 1)) {
+        temp = (controllerShiftRegister & 128) ? 0x41 : 0x40;
+        controllerShiftRegister = (controllerShiftRegister << 1) & 0xff;
+      } else {
+        temp = (controllerButtons & 128) ? 0x41 : 0x40;
+      }
+      return temp;
+    }
+    else if ((address == 0x4017)) {
+        return 0;
+    }
     else
       return mainMem[address];
   }
@@ -39,6 +69,10 @@ function memory(ppu)
       return;
     if ((address >= 0x2000)  & (address < 0x2008))
       localPPU.writeRegister(address, byteval)
+    else if (address == 0x4016) {
+      if (!(mainMem[0x4016] & 1))
+        controllerShiftRegister = controllerButtons;
+    }
     else
       mainMem[address] = byteval;
   }

@@ -6,7 +6,7 @@
     <script src="Cpu.js"></script>
     <script src="PPU.js"></script>
   </head>
-  <body>
+  <body onkeydown="mymem.onkeydown(event)" onkeyup="mymem.onkeyup(event)">
     <h1>NES Emulator From Scratch</h1>
 <div style="position:relative; width:256; height:240px">
 <canvas id="screenBackground" width="256" height="240" position:absolute; left: 0px; top: 0px">
@@ -79,7 +79,8 @@ Break at: <input type="text" id="breakpoint">
         var cycleInFrame = 0;
         while (cycleInFrame < 19500) { 
           mycpu.step();
-          cycleInFrame = mycpu.getCycleCount() % 20000;
+          cycleInFrame++;
+          //cycleInFrame = mycpu.getCycleCount() % 40000;
           if (cycleInFrame < 100) {
             myppu.writeRegister(0x2002, 0x80);
             if (myppu.readRegister(0x2000) & 0x80)
@@ -94,6 +95,7 @@ Break at: <input type="text" id="breakpoint">
             return;
           }
         }
+        myppu.draw2();
       }
       
       function startEm() {
