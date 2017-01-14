@@ -102,6 +102,7 @@ const opCodeDesc =
   var myInterruptController;
   var myvideo;
   var allowLogging = false;
+  var finishedFrame = 0;
 
     this.getCycleCount = function() {
       return cycleCount;
@@ -109,6 +110,14 @@ const opCodeDesc =
 
     this.setInterrupt = function () {
       interruptOcurred = 1;
+    }
+
+    this.getFinishedFrame = function () {
+      return finishedFrame;
+    }
+
+    this.resetFinishedFrame = function() {
+      finishedFrame = 0;
     }
 
     this.setNMIpinStatus = function(status) {
@@ -430,6 +439,10 @@ const opCodeDesc =
     var arg2 = 0;
     var effectiveAdrress = 0;
     cycleCount = cycleCount + instructionCycles[opcode];
+    if (cycleCount > 33384) {
+      cycleCount = 0;
+      finishedFrame = 1;
+    }
     if (iLen > 1) {
       arg1 = localMem.readMem(pc);
       pc = pc + 1;
