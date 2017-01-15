@@ -88,9 +88,11 @@ function ppu(screenCanvas) {
         var tileNumber = ppuMemory[currentCharPos];
         var pixelNum = 0;
         var pixelData = ppuMemory[0x1000 + (tileNumber << 4) + (line & 7) ];
-        var pixelData2 = ppuMemory[0x1000 + (tileNumber << 4) + ((line + 8) & 7) ];
+        var pixelData2 = ppuMemory[0x1000 + (tileNumber << 4) + (line & 7) + 8 ];
         for (pixelNum = 0; pixelNum < 8; pixelNum++) {
-          var entryNum = (pixelData << 1) | pixelData2;
+          var pixelBit1 = (pixelData & 128) ? 1 : 0;
+          var pixelBit2 = (pixelData2 & 128) ? 1 : 0;
+          var entryNum = (pixelBit2 << 1) | pixelBit1;
           var paletteEntryNum = ppuMemory[0x3f00 + entryNum] & 0x7f;
           screenDataAsArray[posinbuf+0] = colors[paletteEntryNum][0];
           screenDataAsArray[posinbuf+1] = colors[paletteEntryNum][1];
