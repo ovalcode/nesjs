@@ -1,4 +1,72 @@
 function ppu(screenCanvas) {
+
+  const colors = [
+[124,124,124],
+[0,0,252],
+[0,0,188],
+[68,40,188],
+[148,0,132],
+[168,0,32],
+[168,16,0],
+[136,20,0],
+[80,48,0],
+[0,120,0],
+[0,104,0],
+[0,88,0],
+[0,64,88],
+[0,0,0],
+[0,0,0],
+[0,0,0],
+[188,188,188],
+[0,120,248],
+[0,88,248],
+[104,68,252],
+[216,0,204],
+[228,0,88],
+[248,56,0],
+[228,92,16],
+[172,124,0],
+[0,184,0],
+[0,168,0],
+[0,168,68],
+[0,136,136],
+[0,0,0],
+[0,0,0],
+[0,0,0],
+[248,248,248],
+[60,188,252],
+[104,136,252],
+[152,120,248],
+[248,120,248],
+[248,88,152],
+[248,120,88],
+[252,160,68],
+[248,184,0],
+[184,248,24],
+[88,216,84],
+[88,248,152],
+[0,232,216],
+[120,120,120],
+[0,0,0],
+[0,0,0],
+[252,252,252],
+[164,228,252],
+[184,184,248],
+[216,184,248],
+[248,184,248],
+[248,164,192],
+[240,208,176],
+[252,224,168],
+[248,216,120],
+[216,248,120],
+[184,248,184],
+[184,248,216],
+[0,252,252],
+[248,216,248],
+[0,0,0],
+[0,0,0]
+];
+
   var contextScreen = screenCanvas.getContext("2d");
   var screenData = contextScreen.createImageData(256, 240);
   var screenDataAsArray = screenData.data;
@@ -15,27 +83,22 @@ function ppu(screenCanvas) {
       if ((line > 0) && !(line & 7)) {
         currentTextLinePos = currentTextLinePos + 32;
       }
-      var currentCharPos;
+      var currentCharPos = 0;
       for (currentCharPos = currentTextLinePos; currentCharPos < (currentTextLinePos + 32); currentCharPos++) {
         var tileNumber = ppuMemory[currentCharPos];
-        var pixelNum;
+        var pixelNum = 0;
         var pixelData = ppuMemory[0x1000 + (tileNumber << 4) + (line & 7) ];
+        var pixelData2 = ppuMemory[0x1000 + (tileNumber << 4) + ((line + 8) & 7) ];
         for (pixelNum = 0; pixelNum < 8; pixelNum++) {
-          if (pixelData & 128) {
-            screenDataAsArray[posinbuf+0] = 0;
-            screenDataAsArray[posinbuf+1] = 0;
-            screenDataAsArray[posinbuf+2] = 0;
-            screenDataAsArray[posinbuf+3] = 255;
-            posinbuf = posinbuf + 4;
-          } else {
-            screenDataAsArray[posinbuf+0] = 255;
-            screenDataAsArray[posinbuf+1] = 255;
-            screenDataAsArray[posinbuf+2] = 255;
-            screenDataAsArray[posinbuf+3] = 255;
-            posinbuf = posinbuf + 4;
-
-          }
+          var entryNum = (pixelData << 1) | pixelData2;
+          var paletteEntryNum = ppuMemory[0x3f00 + entryNum] & 0x7f;
+          screenDataAsArray[posinbuf+0] = colors[paletteEntryNum][0];
+          screenDataAsArray[posinbuf+1] = colors[paletteEntryNum][1];
+          screenDataAsArray[posinbuf+2] = colors[paletteEntryNum][2];
+          screenDataAsArray[posinbuf+3] = 255;
+          posinbuf = posinbuf + 4;
           pixelData = pixelData << 1;          
+          pixelData2 = pixelData2 << 1;          
         }
       }
     }
