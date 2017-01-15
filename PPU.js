@@ -84,15 +84,30 @@ function ppu(screenCanvas) {
         currentTextLinePos = currentTextLinePos + 32;
       }
       var currentCharPos = 0;
+      var charPosInLine = 0;
       for (currentCharPos = currentTextLinePos; currentCharPos < (currentTextLinePos + 32); currentCharPos++) {
         var tileNumber = ppuMemory[currentCharPos];
         var pixelNum = 0;
         var pixelData = ppuMemory[0x1000 + (tileNumber << 4) + (line & 7) ];
         var pixelData2 = ppuMemory[0x1000 + (tileNumber << 4) + (line & 7) + 8 ];
+        var col8x8 = charPosInLine >> 2;
+        var row8x8 = line >> 3;
+        var linear8x8 = (row8x8 << 3) + col8x8;
+        var attributeByte = ppuMemory[0x23c0 + linear8x8];
+        
+        var colInCell = (charPosInLine & 3) >> 1;
+        var rowInCell = (line & 31) >> 4;
+        var linearCell = (rowInCell << 1) + colInCell;
+        attributeByte = attributeByte >> ((3 - linearCell) << 1);
+        //attributeByte = attributeByte >> ((linearCell) << 1);
+        attributeByte = attributeByte & 3;
+        attributeByte = attributeByte << 2;
+
         for (pixelNum = 0; pixelNum < 8; pixelNum++) {
           var pixelBit1 = (pixelData & 128) ? 1 : 0;
           var pixelBit2 = (pixelData2 & 128) ? 1 : 0;
           var entryNum = (pixelBit2 << 1) | pixelBit1;
+          entryNum = entryNum | attributeByte;
           var paletteEntryNum = ppuMemory[0x3f00 + entryNum] & 0x7f;
           screenDataAsArray[posinbuf+0] = colors[paletteEntryNum][0];
           screenDataAsArray[posinbuf+1] = colors[paletteEntryNum][1];
@@ -102,6 +117,7 @@ function ppu(screenCanvas) {
           pixelData = pixelData << 1;          
           pixelData2 = pixelData2 << 1;          
         }
+        charPosInLine++;
       }
     }
 
