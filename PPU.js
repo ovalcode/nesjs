@@ -73,6 +73,10 @@ function ppu(screenCanvas) {
   var registers = new Uint8Array(8);
   var ppuMemory = new Uint8Array(65536);
   var writeCounter = 0;
+  const CHR_SIZE = 4 * 0x2000;
+  var chrBanks = new Uint8Array(CHR_SIZE);
+  var bankNumber = 0;
+  var offsetCHRROM = 0;
 
   this.draw2 = function() {
     var line = 0;
@@ -88,8 +92,8 @@ function ppu(screenCanvas) {
       for (currentCharPos = currentTextLinePos; currentCharPos < (currentTextLinePos + 32); currentCharPos++) {
         var tileNumber = ppuMemory[currentCharPos];
         var pixelNum = 0;
-        var pixelData = ppuMemory[0x1000 + (tileNumber << 4) + (line & 7) ];
-        var pixelData2 = ppuMemory[0x1000 + (tileNumber << 4) + (line & 7) + 8 ];
+        var pixelData = chrBanks[0x1000 + offsetCHRROM + (tileNumber << 4) + (line & 7) ];
+        var pixelData2 = chrBanks[0x1000 + offsetCHRROM + (tileNumber << 4) + (line & 7) + 8 ];
         var col8x8 = charPosInLine >> 2;
         var row8x8 = line >> 3;
         var linear8x8 = (row8x8 << 3) + col8x8;
@@ -335,10 +339,15 @@ function ppu(screenCanvas) {
     //Skip 2X prog ROM
     pos += 0x8000;
     var i = 0;
-    for (i = 0; i < 0x2000; i++) {
-      ppuMemory[i] = data[pos];
+    for (i = 0; i < CHR_SIZE; i++) {
+      chrBanks[i] = data[pos];
       pos++;
     }
+  }
+
+  this.setROMBank = function (bankNumber_local) {
+    bankNumber = bankNumber_local & 0xf;
+    offsetCHRROM = bankNumber * 0x2000;
   }
 
   this.writeRegister = function(address, value) {

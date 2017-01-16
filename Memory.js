@@ -66,7 +66,7 @@ function memory(ppu)
     //if ((address >= 0x2000) & (address != 0x2002))
     //  console.log("Write " + address.toString(16) + " " + byteval.toString(16));
     if (address >= 0x8000)
-      return;
+      localPPU.setROMBank(byteval);
     if ((address >= 0x2000)  & (address < 0x2008))
       localPPU.writeRegister(address, byteval)
     else if (address == 0x4016) {
