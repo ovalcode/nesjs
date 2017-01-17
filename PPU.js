@@ -68,8 +68,12 @@ function ppu(screenCanvas) {
 ];
 
   var contextScreen = screenCanvas.getContext("2d");
-  var screenData = contextScreen.createImageData(256, 240);
-  var screenDataAsArray = screenData.data;
+  var screenDataNameTable1 = contextScreen.createImageData(256, 240);
+  var screenDataAsArray1 = screenDataNameTable1.data;
+  var screenDataNameTable2 = contextScreen.createImageData(256, 240);
+  var screenDataAsArray2 = screenDataNameTable2.data;
+
+
   var registers = new Uint8Array(8);
   var ppuMemory = new Uint8Array(65536);
   var writeCounter = 0;
@@ -78,7 +82,17 @@ function ppu(screenCanvas) {
   var bankNumber = 0;
   var offsetCHRROM = 0;
 
+  function testaa(testArray) {
+    testArray[0] = 1;
+    testArray[1] = 2;
+    testArray[2] = 3;
+  }
+
   this.draw2 = function() {
+
+    testaa(screenDataAsArray1);
+
+
     var line = 0;
     var posinbuf = 0;
     var currentTextLinePos = 0x2000;
