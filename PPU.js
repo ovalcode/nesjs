@@ -1,5 +1,15 @@
 function ppu(screenCanvas) {
 
+  const screenNum = [
+    //// col > 31  line > 239
+    0x2000,//00
+    0x2400,//01
+    0x2000,//10
+    0x2400,//11
+    
+];
+
+
   const colors = [
 [124,124,124],
 [0,0,252],
@@ -77,25 +87,46 @@ function ppu(screenCanvas) {
   var chrBanks = new Uint8Array(CHR_SIZE);
   var bankNumber = 0;
   var offsetCHRROM = 0;
+  var scrollLatch = 0;
+  var scrollX = 0;
+  var scrollY = 0;
 
   this.draw2 = function() {
     var line = 0;
     var posinbuf = 0;
-    var currentTextLinePos = 0x2000;
+    var currentTextLinePos = (scrollY << 3) & 0xfff8;
+    var charLineOffSet = scrollX >> 3;
 //    var  = 0;
-    for (line = 0; line < 240; line++) {
-      if ((line > 0) && !(line & 7)) {
-        currentTextLinePos = currentTextLinePos + 32;
+    
+    for (line = scrollY; line < (240 + scrollY); line++) {
+      var col = 0;
+      if ((line > scrollY) && !(line & 7)) {
+        currentTextLinePos = currentTextLinePos + 64;
       }
       var currentCharPos = 0;
       var charPosInLine = 0;
-      for (currentCharPos = currentTextLinePos; currentCharPos < (currentTextLinePos + 32); currentCharPos++) {
-        var tileNumber = ppuMemory[currentCharPos];
+      for (currentCharPos = currentTextLinePos; currentCharPos < (currentTextLinePos + 64); currentCharPos++) {
+        col = col & 31;
+        //currentTextLinePos >> 1;
+        //currentCharPos & 31;
+        //which screen???
+        // col > 31  line > 239
+        // 
+        //lookup table
+        var colBigger31 = col > 31 ? 1 : 0;
+        var rowBigger239 = line > 239 ? 1 : 0;
+        var screenLookupKey = (colBigger31 << 1) | rowBigger239;
+        var screenbaseAddress = screenNum[screenLookupKey];   
+        var currentCharAccumalated = currentTextLinePos >> 1;
+        if  (currentCharAccumalated > 959)  
+          currentCharAccumalated = currentCharAccumalated - 960;
+
+        var tileNumber = ppuMemory[currentCharAccumalated + col + screenbaseAddress];
         var pixelNum = 0;
         var pixelData = chrBanks[0x1000 + offsetCHRROM + (tileNumber << 4) + (line & 7) ];
         var pixelData2 = chrBanks[0x1000 + offsetCHRROM + (tileNumber << 4) + (line & 7) + 8 ];
-        var col8x8 = charPosInLine >> 2;
-        var row8x8 = line >> 3;
+        var col8x8 = col >> 2;
+        var row8x8 = line > 239 ? ((line - 240) >> 3) : (line >> 3);
         var linear8x8 = (row8x8 << 3) + col8x8;
         var attributeByte = ppuMemory[0x23c0 + linear8x8];
         
@@ -122,6 +153,7 @@ function ppu(screenCanvas) {
           pixelData2 = pixelData2 << 1;          
         }
         charPosInLine++;
+        col++;
       }
     }
 
@@ -359,6 +391,13 @@ function ppu(screenCanvas) {
       ppuMemory [writeCounter] = value;
       writeCounter++;
       writeCounter = writeCounter & 0xffff;
+    } else if (address == 0x2005) {
+      if (scrollLatch == 0) {
+        scrollX = value;
+      } else {
+        scrollY = value;
+      } 
+      scrollLatch = ~scrollLatch & 1;      
     }
   }
 }
