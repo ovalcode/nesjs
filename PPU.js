@@ -135,11 +135,12 @@ function ppu(screenCanvas) {
 
   this.draw2 = function() {
     renderNameTable(0x2000, screenDataNameTable1.data);
-    renderNameTable(0x2400, screenDataNameTable2.data);
+    renderNameTable(0x2800, screenDataNameTable2.data);
     contextScreen.putImageData(screenDataNameTable1,-scrollX,-scrollY);
     contextScreen.putImageData(screenDataNameTable1, 256-scrollX, -scrollY);
     contextScreen.putImageData(screenDataNameTable2,-scrollX,240-scrollY);
     contextScreen.putImageData(screenDataNameTable2,256-scrollX,240-scrollY);
+
   }
 
   this.draw = function () {
