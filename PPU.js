@@ -69,10 +69,7 @@ function ppu(screenCanvas) {
 
   var contextScreen = screenCanvas.getContext("2d");
   var screenDataNameTable1 = contextScreen.createImageData(256, 240);
-  var screenDataAsArray1 = screenDataNameTable1.data;
   var screenDataNameTable2 = contextScreen.createImageData(256, 240);
-  var screenDataAsArray2 = screenDataNameTable2.data;
-
 
   var registers = new Uint8Array(8);
   var ppuMemory = new Uint8Array(65536);
@@ -82,21 +79,16 @@ function ppu(screenCanvas) {
   var bankNumber = 0;
   var offsetCHRROM = 0;
 
-  function testaa(testArray) {
-    testArray[0] = 1;
-    testArray[1] = 2;
-    testArray[2] = 3;
-  }
+  var scrollX = 0;
+  var scrollY = 0;
+  var receiveXScroll = true;
 
-  this.draw2 = function() {
-
-    testaa(screenDataAsArray1);
-
-
+  function renderNameTable(baseAddress, dataArray) {
     var line = 0;
     var posinbuf = 0;
-    var currentTextLinePos = 0x2000;
-//    var  = 0;
+    var currentTextLinePos = baseAddress;
+    var attributeBaseAddress = baseAddress + 0x3c0;
+
     for (line = 0; line < 240; line++) {
       if ((line > 0) && !(line & 7)) {
         currentTextLinePos = currentTextLinePos + 32;
@@ -111,7 +103,7 @@ function ppu(screenCanvas) {
         var col8x8 = charPosInLine >> 2;
         var row8x8 = line >> 3;
         var linear8x8 = (row8x8 << 3) + col8x8;
-        var attributeByte = ppuMemory[0x23c0 + linear8x8];
+        var attributeByte = ppuMemory[attributeBaseAddress + linear8x8];
         
         var colInCell = (charPosInLine & 3) >> 1;
         var rowInCell = (line & 31) >> 4;
@@ -127,10 +119,10 @@ function ppu(screenCanvas) {
           var entryNum = (pixelBit2 << 1) | pixelBit1;
           entryNum = entryNum | attributeByte;
           var paletteEntryNum = ppuMemory[0x3f00 + entryNum] & 0x7f;
-          screenDataAsArray[posinbuf+0] = colors[paletteEntryNum][0];
-          screenDataAsArray[posinbuf+1] = colors[paletteEntryNum][1];
-          screenDataAsArray[posinbuf+2] = colors[paletteEntryNum][2];
-          screenDataAsArray[posinbuf+3] = 255;
+          dataArray[posinbuf+0] = colors[paletteEntryNum][0];
+          dataArray[posinbuf+1] = colors[paletteEntryNum][1];
+          dataArray[posinbuf+2] = colors[paletteEntryNum][2];
+          dataArray[posinbuf+3] = 255;
           posinbuf = posinbuf + 4;
           pixelData = pixelData << 1;          
           pixelData2 = pixelData2 << 1;          
@@ -139,7 +131,15 @@ function ppu(screenCanvas) {
       }
     }
 
-    contextScreen.putImageData(screenData,0,0);
+  }
+
+  this.draw2 = function() {
+    renderNameTable(0x2000, screenDataNameTable1.data);
+    renderNameTable(0x2400, screenDataNameTable2.data);
+    contextScreen.putImageData(screenDataNameTable1,-scrollX,-scrollY);
+    contextScreen.putImageData(screenDataNameTable1, 256-scrollX, -scrollY);
+    contextScreen.putImageData(screenDataNameTable2,-scrollX,240-scrollY);
+    contextScreen.putImageData(screenDataNameTable2,256-scrollX,240-scrollY);
   }
 
   this.draw = function () {
@@ -373,6 +373,12 @@ function ppu(screenCanvas) {
       ppuMemory [writeCounter] = value;
       writeCounter++;
       writeCounter = writeCounter & 0xffff;
+    } else if (address = 0x2005) {
+      if (receiveXScroll)
+        scrollX = value;
+      else
+        scrollY = value;
+      receiveXScroll = !receiveXScroll;
     }
   }
 }
