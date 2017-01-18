@@ -373,7 +373,7 @@ function ppu(screenCanvas) {
       ppuMemory [writeCounter] = value;
       writeCounter++;
       writeCounter = writeCounter & 0xffff;
-    } else if (address = 0x2005) {
+    } else if (address == 0x2005) {
       if (receiveXScroll)
         scrollX = value;
       else
