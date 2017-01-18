@@ -108,8 +108,8 @@ function ppu(screenCanvas) {
         var colInCell = (charPosInLine & 3) >> 1;
         var rowInCell = (line & 31) >> 4;
         var linearCell = (rowInCell << 1) + colInCell;
-        attributeByte = attributeByte >> ((3 - linearCell) << 1);
-        //attributeByte = attributeByte >> ((linearCell) << 1);
+        //attributeByte = attributeByte >> ((3 - linearCell) << 1);
+        attributeByte = attributeByte >> ((linearCell) << 1);
         attributeByte = attributeByte & 3;
         attributeByte = attributeByte << 2;
 
@@ -372,7 +372,8 @@ function ppu(screenCanvas) {
       writeCounter = writeCounter & 0xffff;
     } else if (address == 0x2007) {
       ppuMemory [writeCounter] = value;
-      writeCounter++;
+      var increment = registers[0] & 4 ? 32 : 1;
+      writeCounter = writeCounter + increment;
       writeCounter = writeCounter & 0xffff;
     } else if (address == 0x2005) {
       if (receiveXScroll)
