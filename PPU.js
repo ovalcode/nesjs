@@ -1,15 +1,5 @@
 function ppu(screenCanvas) {
 
-  const screenNum = [
-    //// col > 31  line > 239
-    0x2000,//00
-    0x2400,//01
-    0x2000,//10
-    0x2400,//11
-    
-];
-
-
   const colors = [
 [124,124,124],
 [0,0,252],
@@ -78,8 +68,9 @@ function ppu(screenCanvas) {
 ];
 
   var contextScreen = screenCanvas.getContext("2d");
-  var screenData = contextScreen.createImageData(256, 240);
-  var screenDataAsArray = screenData.data;
+  var screenDataNameTable1 = contextScreen.createImageData(256, 240);
+  var screenDataNameTable2 = contextScreen.createImageData(256, 240);
+
   var registers = new Uint8Array(8);
   var ppuMemory = new Uint8Array(65536);
   var writeCounter = 0;
@@ -87,54 +78,38 @@ function ppu(screenCanvas) {
   var chrBanks = new Uint8Array(CHR_SIZE);
   var bankNumber = 0;
   var offsetCHRROM = 0;
-  var scrollLatch = 0;
+
   var scrollX = 0;
   var scrollY = 0;
+  var receiveXScroll = true;
 
-  this.draw2 = function() {
+  function renderNameTable(baseAddress, dataArray) {
     var line = 0;
     var posinbuf = 0;
-    var currentTextLinePos = (scrollY << 3) & 0xfff8;
-    var charLineOffSet = scrollX >> 3;
-//    var  = 0;
-    
-    for (line = scrollY; line < (240 + scrollY); line++) {
-      var col = 0;
-      if ((line > scrollY) && !(line & 7)) {
-        currentTextLinePos = currentTextLinePos + 64;
+    var currentTextLinePos = baseAddress;
+    var attributeBaseAddress = baseAddress + 0x3c0;
+
+    for (line = 0; line < 240; line++) {
+      if ((line > 0) && !(line & 7)) {
+        currentTextLinePos = currentTextLinePos + 32;
       }
       var currentCharPos = 0;
       var charPosInLine = 0;
-      for (currentCharPos = currentTextLinePos; currentCharPos < (currentTextLinePos + 64); currentCharPos++) {
-        col = col & 31;
-        //currentTextLinePos >> 1;
-        //currentCharPos & 31;
-        //which screen???
-        // col > 31  line > 239
-        // 
-        //lookup table
-        var colBigger31 = col > 31 ? 1 : 0;
-        var rowBigger239 = line > 239 ? 1 : 0;
-        var screenLookupKey = (colBigger31 << 1) | rowBigger239;
-        var screenbaseAddress = screenNum[screenLookupKey];   
-        var currentCharAccumalated = currentTextLinePos >> 1;
-        if  (currentCharAccumalated > 959)  
-          currentCharAccumalated = currentCharAccumalated - 960;
-
-        var tileNumber = ppuMemory[currentCharAccumalated + col + screenbaseAddress];
+      for (currentCharPos = currentTextLinePos; currentCharPos < (currentTextLinePos + 32); currentCharPos++) {
+        var tileNumber = ppuMemory[currentCharPos];
         var pixelNum = 0;
         var pixelData = chrBanks[0x1000 + offsetCHRROM + (tileNumber << 4) + (line & 7) ];
         var pixelData2 = chrBanks[0x1000 + offsetCHRROM + (tileNumber << 4) + (line & 7) + 8 ];
-        var col8x8 = col >> 2;
-        var row8x8 = line > 239 ? ((line - 240) >> 3) : (line >> 3);
+        var col8x8 = charPosInLine >> 2;
+        var row8x8 = line >> 3;
         var linear8x8 = (row8x8 << 3) + col8x8;
-        var attributeByte = ppuMemory[0x23c0 + linear8x8];
+        var attributeByte = ppuMemory[attributeBaseAddress + linear8x8];
         
         var colInCell = (charPosInLine & 3) >> 1;
         var rowInCell = (line & 31) >> 4;
         var linearCell = (rowInCell << 1) + colInCell;
-        attributeByte = attributeByte >> ((3 - linearCell) << 1);
-        //attributeByte = attributeByte >> ((linearCell) << 1);
+        //attributeByte = attributeByte >> ((3 - linearCell) << 1);
+        attributeByte = attributeByte >> ((linearCell) << 1);
         attributeByte = attributeByte & 3;
         attributeByte = attributeByte << 2;
 
@@ -144,20 +119,46 @@ function ppu(screenCanvas) {
           var entryNum = (pixelBit2 << 1) | pixelBit1;
           entryNum = entryNum | attributeByte;
           var paletteEntryNum = ppuMemory[0x3f00 + entryNum] & 0x7f;
-          screenDataAsArray[posinbuf+0] = colors[paletteEntryNum][0];
-          screenDataAsArray[posinbuf+1] = colors[paletteEntryNum][1];
-          screenDataAsArray[posinbuf+2] = colors[paletteEntryNum][2];
-          screenDataAsArray[posinbuf+3] = 255;
+          dataArray[posinbuf+0] = colors[paletteEntryNum][0];
+          dataArray[posinbuf+1] = colors[paletteEntryNum][1];
+          dataArray[posinbuf+2] = colors[paletteEntryNum][2];
+          dataArray[posinbuf+3] = 255;
           posinbuf = posinbuf + 4;
           pixelData = pixelData << 1;          
           pixelData2 = pixelData2 << 1;          
         }
         charPosInLine++;
-        col++;
       }
     }
 
-    contextScreen.putImageData(screenData,0,0);
+  }
+
+  this.draw2 = function() {
+    renderNameTable(0x2000, screenDataNameTable1.data);
+    renderNameTable(0x2800, screenDataNameTable2.data);
+    //contextScreen.putImageData(screenDataNameTable1,-scrollX,-scrollY); //0
+    //contextScreen.putImageData(screenDataNameTable1, 256-scrollX, -scrollY); //1
+    //contextScreen.putImageData(screenDataNameTable2,-scrollX,240-scrollY); //2
+    //contextScreen.putImageData(screenDataNameTable2,256-scrollX,240-scrollY); //3
+
+    var firstNameTable = registers[0] & 3;
+    var firstScreenToDraw;
+    var secondScreenToDraw;
+    if (firstNameTable == 2) {
+      firstScreenToDraw = screenDataNameTable2;
+      secondScreenToDraw = screenDataNameTable1;
+    } else {
+      firstScreenToDraw = screenDataNameTable1;
+      secondScreenToDraw = screenDataNameTable2;
+
+    }
+
+    contextScreen.putImageData(firstScreenToDraw,-scrollX,-scrollY); //0
+    contextScreen.putImageData(firstScreenToDraw, 256-scrollX, -scrollY); //1
+    contextScreen.putImageData(secondScreenToDraw,-scrollX,240-scrollY); //2
+    contextScreen.putImageData(secondScreenToDraw,256-scrollX,240-scrollY); //3
+    
+
   }
 
   this.draw = function () {
@@ -389,15 +390,15 @@ function ppu(screenCanvas) {
       writeCounter = writeCounter & 0xffff;
     } else if (address == 0x2007) {
       ppuMemory [writeCounter] = value;
-      writeCounter++;
+      var increment = registers[0] & 4 ? 32 : 1;
+      writeCounter = writeCounter + increment;
       writeCounter = writeCounter & 0xffff;
     } else if (address == 0x2005) {
-      if (scrollLatch == 0) {
+      if (receiveXScroll)
         scrollX = value;
-      } else {
+      else
         scrollY = value;
-      } 
-      scrollLatch = ~scrollLatch & 1;      
+      receiveXScroll = !receiveXScroll;
     }
   }
 }
