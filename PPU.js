@@ -136,10 +136,28 @@ function ppu(screenCanvas) {
   this.draw2 = function() {
     renderNameTable(0x2000, screenDataNameTable1.data);
     renderNameTable(0x2800, screenDataNameTable2.data);
-    contextScreen.putImageData(screenDataNameTable1,-scrollX,-scrollY);
-    contextScreen.putImageData(screenDataNameTable1, 256-scrollX, -scrollY);
-    contextScreen.putImageData(screenDataNameTable2,-scrollX,240-scrollY);
-    contextScreen.putImageData(screenDataNameTable2,256-scrollX,240-scrollY);
+    //contextScreen.putImageData(screenDataNameTable1,-scrollX,-scrollY); //0
+    //contextScreen.putImageData(screenDataNameTable1, 256-scrollX, -scrollY); //1
+    //contextScreen.putImageData(screenDataNameTable2,-scrollX,240-scrollY); //2
+    //contextScreen.putImageData(screenDataNameTable2,256-scrollX,240-scrollY); //3
+
+    var firstNameTable = registers[0] & 3;
+    var firstScreenToDraw;
+    var secondScreenToDraw;
+    if (firstNameTable == 2) {
+      firstScreenToDraw = screenDataNameTable2;
+      secondScreenToDraw = screenDataNameTable1;
+    } else {
+      firstScreenToDraw = screenDataNameTable1;
+      secondScreenToDraw = screenDataNameTable2;
+
+    }
+
+    contextScreen.putImageData(firstScreenToDraw,-scrollX,-scrollY); //0
+    contextScreen.putImageData(firstScreenToDraw, 256-scrollX, -scrollY); //1
+    contextScreen.putImageData(secondScreenToDraw,-scrollX,240-scrollY); //2
+    contextScreen.putImageData(secondScreenToDraw,256-scrollX,240-scrollY); //3
+    
 
   }
 
