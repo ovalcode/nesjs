@@ -101,7 +101,7 @@ function ppu(screenCanvas) {
         var pixelData = chrBanks[0x1000 + offsetCHRROM + (tileNumber << 4) + (line & 7) ];
         var pixelData2 = chrBanks[0x1000 + offsetCHRROM + (tileNumber << 4) + (line & 7) + 8 ];
         var col8x8 = charPosInLine >> 2;
-        var row8x8 = line >> 3;
+        var row8x8 = line >> 5;
         var linear8x8 = (row8x8 << 3) + col8x8;
         var attributeByte = ppuMemory[attributeBaseAddress + linear8x8];
         
@@ -157,7 +157,9 @@ function ppu(screenCanvas) {
     contextScreen.putImageData(firstScreenToDraw, 256-scrollX, -scrollY); //1
     contextScreen.putImageData(secondScreenToDraw,-scrollX,240-scrollY); //2
     contextScreen.putImageData(secondScreenToDraw,256-scrollX,240-scrollY); //3
-    
+
+    contextScreen.fillStyle="#FFFFFF";
+    contextScreen.fillRect(0,0,7,249);    
 
   }
 
