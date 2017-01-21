@@ -70,9 +70,12 @@ function ppu(screenCanvas) {
   var contextScreen = screenCanvas.getContext("2d");
   var screenDataNameTable1 = contextScreen.createImageData(256, 240);
   var screenDataNameTable2 = contextScreen.createImageData(256, 240);
+  var spriteData = contextScreen.createImageData(256, 240);
 
   var registers = new Uint8Array(8);
   var ppuMemory = new Uint8Array(65536);
+  var SPR_RAM = new Uint8Array(256);
+  var SPR_RAMwritePos = 0;
   var writeCounter = 0;
   const CHR_SIZE = 4 * 0x2000;
   var chrBanks = new Uint8Array(CHR_SIZE);
@@ -82,6 +85,10 @@ function ppu(screenCanvas) {
   var scrollX = 0;
   var scrollY = 0;
   var receiveXScroll = true;
+
+  this.getPPUMemory = function() {
+    return ppuMemory;
+  }
 
   function renderNameTable(baseAddress, dataArray) {
     var line = 0;
@@ -157,6 +164,10 @@ function ppu(screenCanvas) {
     contextScreen.putImageData(firstScreenToDraw, 256-scrollX, -scrollY); //1
     contextScreen.putImageData(secondScreenToDraw,-scrollX,240-scrollY); //2
     contextScreen.putImageData(secondScreenToDraw,256-scrollX,240-scrollY); //3
+    //If Sprites is enabled display them
+    if (registers[0x2001] &  0x10) {
+      
+    }
 
     contextScreen.fillStyle="#FFFFFF";
     contextScreen.fillRect(0,0,7,249);    
@@ -401,6 +412,10 @@ function ppu(screenCanvas) {
       else
         scrollY = value;
       receiveXScroll = !receiveXScroll;
-    }
+    } else if (address == 0x2003) {
+      SPR_RAMwritePos = value;
+    } else if (address == 0x2004) {
+      SPR_RAM [SPR_RAMwritePos] = value;
+    } 
   }
 }

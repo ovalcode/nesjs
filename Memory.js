@@ -72,6 +72,13 @@ function memory(ppu)
     else if (address == 0x4016) {
       if (!(mainMem[0x4016] & 1))
         controllerShiftRegister = controllerButtons;
+    } else if (address == 0x4014) {
+      var cpuMemPos = byteval << 8;
+      var ppuMem = localPPU.getPPUMemory();
+      var i = 0;
+      for (i = 0; i < 256; i++) {
+        ppuMem[i] = mainMem[cpuMemPos + i];
+      }
     }
     else
       mainMem[address] = byteval;
