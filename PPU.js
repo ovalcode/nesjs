@@ -88,8 +88,8 @@ function ppu(screenCanvas) {
   var scrollY = 0;
   var receiveXScroll = true;
 
-  this.getPPUMemory = function() {
-    return ppuMemory;
+  this.getPPUSpriteMemory = function() {
+    return SPR_RAM;
   }
 
   function renderNameTable(baseAddress, dataArray) {
