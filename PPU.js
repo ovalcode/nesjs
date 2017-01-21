@@ -70,8 +70,10 @@ function ppu(screenCanvas) {
   var contextScreen = screenCanvas.getContext("2d");
   var screenDataNameTable1 = contextScreen.createImageData(256, 240);
   var screenDataNameTable2 = contextScreen.createImageData(256, 240);
-  var spriteData = contextScreen.createImageData(256, 240);
-
+  var spriteCanvas = document.createElement("canvas");
+  var spriteContext = spriteCanvas.getContext("2d");
+  var spriteData = spriteContext.createImageData(256, 240);
+  
   var registers = new Uint8Array(8);
   var ppuMemory = new Uint8Array(65536);
   var SPR_RAM = new Uint8Array(256);
@@ -165,9 +167,26 @@ function ppu(screenCanvas) {
     contextScreen.putImageData(secondScreenToDraw,-scrollX,240-scrollY); //2
     contextScreen.putImageData(secondScreenToDraw,256-scrollX,240-scrollY); //3
     //If Sprites is enabled display them
-    if (registers[0x2001] &  0x10) {
-      
+    if (registers[0x1] &  0x10) {
+      var i=0;
+      for (i = 0; i < (256*240*4); i++) {
+        spriteData.data[i] = 0;
+      }
+      var posInLine = 128*4;
+      for (i = 0; i < (256 * 4 * 50); i = i + (256 << 2)) {
+        var j;
+        for (j = 0; j < 50 * 4; j = j + 4) {
+          spriteData.data[i+j+posInLine + 0] = 255;
+          spriteData.data[i+j+posInLine + 1] = 0;
+          spriteData.data[i+j+posInLine + 2] = 0;
+          spriteData.data[i+j+posInLine + 3] = 255;
+        }
+      }
+      spriteContext.putImageData(spriteData,0,0);
+      contextScreen.drawImage(spriteCanvas,0,0);
     }
+
+   
 
     contextScreen.fillStyle="#FFFFFF";
     contextScreen.fillRect(0,0,7,249);    
