@@ -92,6 +92,43 @@ function ppu(screenCanvas) {
     return SPR_RAM;
   }
 
+  function renderSprites() {
+    var i;
+    var spriteBaseAddress = registers[0] & 8 ? 0x1000 : 0;
+    spriteBaseAddress = spriteBaseAddress + offsetCHRROM;
+    for (i = 0; i < 256; i = i + 4) {
+      var tileIndex = SPR_RAM[i+1];
+      var tileBaseAddress = (tileIndex << 4) + spriteBaseAddress; 
+      var j;
+      var posInSpriteBuffer = SPR_RAM[i+0] << 10;
+      var spriteXPos = SPR_RAM[i+3] << 2;
+      for (j = 0; j < 8; j++) {
+        var pixelData1 = chrBanks[tileBaseAddress + j];
+        var pixelData2 = chrBanks[tileBaseAddress + j + 8];
+        var pixelNum;
+        var posForSpriteLine = posInSpriteBuffer + spriteXPos;
+        for (pixelNum = 0; pixelNum < 8; pixelNum++) {
+          var pixelBit1 = pixelData1 & 128 ? 1 : 0;
+          var pixelBit2 = pixelData2 & 128 ? 1 : 0;
+          var colorPalletteEntryNum = SPR_RAM[i+2] & 3;
+          colorPalletteEntryNum = colorPalletteEntryNum << 2;
+          colorPalletteEntryNum = colorPalletteEntryNum | (pixelBit1 << 1) | pixelBit2;
+          var entryToSystemPallette = ppuMemory[0x3f10 + colorPalletteEntryNum] & 0xf;
+          
+          spriteData.data[posForSpriteLine + 0] = colors[entryToSystemPallette][0];
+          spriteData.data[posForSpriteLine + 1] = colors[entryToSystemPallette][1];
+          spriteData.data[posForSpriteLine + 2] = colors[entryToSystemPallette][2];
+          spriteData.data[posForSpriteLine + 3] = 255;
+          pixelData1 = pixelData1 << 1;
+          pixelData2 = pixelData2 << 1;    
+          posForSpriteLine = posForSpriteLine + 4;
+        }
+        posInSpriteBuffer = posInSpriteBuffer + 1024;
+      }
+
+    }
+  }
+
   function renderNameTable(baseAddress, dataArray) {
     var line = 0;
     var posinbuf = 0;
@@ -168,20 +205,7 @@ function ppu(screenCanvas) {
     contextScreen.putImageData(secondScreenToDraw,256-scrollX,240-scrollY); //3
     //If Sprites is enabled display them
     if (registers[0x1] &  0x10) {
-      var i=0;
-      for (i = 0; i < (256*240*4); i++) {
-        spriteData.data[i] = 0;
-      }
-      var posInLine = 128*4;
-      for (i = 0; i < (256 * 4 * 50); i = i + (256 << 2)) {
-        var j;
-        for (j = 0; j < 50 * 4; j = j + 4) {
-          spriteData.data[i+j+posInLine + 0] = 255;
-          spriteData.data[i+j+posInLine + 1] = 0;
-          spriteData.data[i+j+posInLine + 2] = 0;
-          spriteData.data[i+j+posInLine + 3] = 255;
-        }
-      }
+      renderSprites();
       spriteContext.putImageData(spriteData,0,0);
       contextScreen.drawImage(spriteCanvas,0,0);
     }
