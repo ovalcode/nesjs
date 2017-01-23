@@ -71,6 +71,9 @@ function ppu(screenCanvas) {
   var screenDataNameTable1 = contextScreen.createImageData(256, 240);
   var screenDataNameTable2 = contextScreen.createImageData(256, 240);
   var spriteCanvas = document.createElement("canvas");
+  spriteCanvas.width = 256;
+  spriteCanvas.height = 240;
+
   var spriteContext = spriteCanvas.getContext("2d");
   var spriteData = spriteContext.createImageData(256, 240);
   
@@ -112,7 +115,7 @@ function ppu(screenCanvas) {
           var pixelBit2 = pixelData2 & 128 ? 1 : 0;
           var colorPalletteEntryNum = SPR_RAM[i+2] & 3;
           colorPalletteEntryNum = colorPalletteEntryNum << 2;
-          colorPalletteEntryNum = colorPalletteEntryNum | (pixelBit1 << 1) | pixelBit2;
+          colorPalletteEntryNum = colorPalletteEntryNum | (pixelBit2 << 1) | pixelBit1;
           var entryToSystemPallette = ppuMemory[0x3f10 + colorPalletteEntryNum] & 0xf;
           
           spriteData.data[posForSpriteLine + 0] = colors[entryToSystemPallette][0];
@@ -206,6 +209,7 @@ function ppu(screenCanvas) {
     //If Sprites is enabled display them
     if (registers[0x1] &  0x10) {
       renderSprites();
+      var i;
       spriteContext.putImageData(spriteData,0,0);
       contextScreen.drawImage(spriteCanvas,0,0);
     }
