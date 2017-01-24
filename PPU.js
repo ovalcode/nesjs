@@ -117,7 +117,7 @@ function ppu(screenCanvas) {
           colorPalletteEntryNum = colorPalletteEntryNum << 2;
           colorPalletteEntryNum = colorPalletteEntryNum | (pixelBit2 << 1) | pixelBit1;
           var entryToSystemPallette = ppuMemory[0x3f10 + colorPalletteEntryNum] & 0x1f;
-          if (entryToSystemPallette != 0) {
+          if (colorPalletteEntryNum & 3) {
             spriteData.data[posForSpriteLine + 0] = colors[entryToSystemPallette][0];
             spriteData.data[posForSpriteLine + 1] = colors[entryToSystemPallette][1];
             spriteData.data[posForSpriteLine + 2] = colors[entryToSystemPallette][2];
