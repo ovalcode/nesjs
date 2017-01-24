@@ -9,16 +9,49 @@ function memory(ppu)
 
   this.onkeydown = function(event) {
     if (event.keyCode == 65)
-      controllerButtons = controllerButtons | 0x20;
+      controllerButtons = controllerButtons | 0x80;
     else if (event.keyCode == 66)
+      controllerButtons = controllerButtons | 0x40;
+    else if (event.keyCode == 13) 
       controllerButtons = controllerButtons | 0x10;
+    else if (event.keyCode == 32) 
+      controllerButtons = controllerButtons | 0x20;
+    else if (event.keyCode == 37) 
+      controllerButtons = controllerButtons | 0x2;
+    else if (event.keyCode == 39) 
+      controllerButtons = controllerButtons | 0x1;
+    else if (event.keyCode == 38) 
+      controllerButtons = controllerButtons | 0x8;
+    else if (event.keyCode == 40) 
+      controllerButtons = controllerButtons | 0x4;
+
+
+//enter 13
+//space 32
+//left 37
+//right 39
+//up 38 
+//down 40
   }
 
   this.onkeyup = function(event) {
     if (event.keyCode == 65)
-      controllerButtons = controllerButtons & 0xdf;
+      controllerButtons = controllerButtons & 0x7f;
     else if (event.keyCode == 66)
+      controllerButtons = controllerButtons & 0xbf;
+    else if (event.keyCode == 13)
       controllerButtons = controllerButtons & 0xef;
+    else if (event.keyCode == 32)
+      controllerButtons = controllerButtons & 0xdf;
+    else if (event.keyCode == 37)
+      controllerButtons = controllerButtons & 0xfd;
+    else if (event.keyCode == 39)
+      controllerButtons = controllerButtons & 0xfe;
+    else if (event.keyCode == 38)
+      controllerButtons = controllerButtons & 0xf7;
+    else if (event.keyCode == 40)
+      controllerButtons = controllerButtons & 0xfb;
+
   }
 
   this.attachCartridge = function(file, cpu) {
