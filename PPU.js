@@ -116,12 +116,13 @@ function ppu(screenCanvas) {
           var colorPalletteEntryNum = SPR_RAM[i+2] & 3;
           colorPalletteEntryNum = colorPalletteEntryNum << 2;
           colorPalletteEntryNum = colorPalletteEntryNum | (pixelBit2 << 1) | pixelBit1;
-          var entryToSystemPallette = ppuMemory[0x3f10 + colorPalletteEntryNum] & 0xf;
-          
-          spriteData.data[posForSpriteLine + 0] = colors[entryToSystemPallette][0];
-          spriteData.data[posForSpriteLine + 1] = colors[entryToSystemPallette][1];
-          spriteData.data[posForSpriteLine + 2] = colors[entryToSystemPallette][2];
-          spriteData.data[posForSpriteLine + 3] = 255;
+          var entryToSystemPallette = ppuMemory[0x3f10 + colorPalletteEntryNum] & 0x1f;
+          if (entryToSystemPallette != 0) {
+            spriteData.data[posForSpriteLine + 0] = colors[entryToSystemPallette][0];
+            spriteData.data[posForSpriteLine + 1] = colors[entryToSystemPallette][1];
+            spriteData.data[posForSpriteLine + 2] = colors[entryToSystemPallette][2];
+            spriteData.data[posForSpriteLine + 3] = 255;
+          }
           pixelData1 = pixelData1 << 1;
           pixelData2 = pixelData2 << 1;    
           posForSpriteLine = posForSpriteLine + 4;
@@ -208,8 +209,12 @@ function ppu(screenCanvas) {
     contextScreen.putImageData(secondScreenToDraw,256-scrollX,240-scrollY); //3
     //If Sprites is enabled display them
     if (registers[0x1] &  0x10) {
-      renderSprites();
       var i;
+      for (i = 0; i < 245760; i++) {
+        spriteData.data[i] = 0;
+      }
+
+      renderSprites();
       spriteContext.putImageData(spriteData,0,0);
       contextScreen.drawImage(spriteCanvas,0,0);
     }
