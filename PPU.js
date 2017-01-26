@@ -91,6 +91,8 @@ function ppu(screenCanvas) {
   var scrollY = 0;
   var receiveXScroll = true;
 
+  var disgardRead = true;
+
   this.getPPUSpriteMemory = function() {
     return SPR_RAM;
   }
@@ -428,6 +430,15 @@ function ppu(screenCanvas) {
   }
 
   this.readRegister = function(address) {
+    if (address == 0x2007) {
+      if (disgardRead) {
+        disgardRead = false;
+        return 0;
+      }
+      var temp = ppuMemory[writeCounter];
+      writeCounter++;
+      return temp;
+    }
     return registers[address & 7];
   }
 
@@ -453,6 +464,7 @@ function ppu(screenCanvas) {
     if (address == 0x2006) {
       writeCounter = (writeCounter << 8) | (value & 0xff);
       writeCounter = writeCounter & 0xffff;
+      disgardRead = true; 
     } else if (address == 0x2007) {
       ppuMemory [writeCounter] = value;
       var increment = registers[0] & 4 ? 32 : 1;
